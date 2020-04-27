@@ -116,8 +116,16 @@ public class JackTokenizer {
 
             //
             int [] pos={-1};
-            // keyword must be extract before identifier
-            String tokenReturn=findKeyWord(m_current_instr,pos);
+
+            String tokenReturn=findIdentifier(m_current_instr,pos);
+            if(tokenReturn !=null && pos[0]<firstTokenPosition){
+                m_TokenType=tokenType.IDENTIFIER;
+                m_Identifier=tokenReturn;
+                tokenFound=tokenReturn;
+                firstTokenPosition=pos[0];
+            }
+
+            tokenReturn=findKeyWord(m_current_instr,pos);
             if(tokenReturn !=null && pos[0]<firstTokenPosition ){
                 m_TokenType=tokenType.KEYWORD;
                 m_KeyWord=tokenReturn;
@@ -149,13 +157,9 @@ public class JackTokenizer {
                 firstTokenPosition=pos[0];
             }
 
-            tokenReturn=findIdentifier(m_current_instr,pos);
-            if(tokenReturn !=null && pos[0]<firstTokenPosition){
-                m_TokenType=tokenType.IDENTIFIER;
-                m_Identifier=tokenReturn;
-                tokenFound=tokenReturn;
-                firstTokenPosition=pos[0];
-            }
+
+
+
 
             if(tokenFound !=null) {
                 if(m_TokenType !=tokenType.STRING_CONST) {
@@ -490,12 +494,18 @@ public class JackTokenizer {
             if (Character.isLetter(instrInput.charAt(0)) != true && instrInput.charAt(0) != '-') {
                 return null;
             }
+
+
+
+
             symbolpos[0]=0;
             pos[0]=0;
+            //check if it is a keyword
+
 
             int positionOfSpace=instrInput.indexOf(" ");
             int positionOfStringConst=instrInput.indexOf('\"');
-            findSymbol(instrInput, symbolpos);
+            String symbolFound=findSymbol(instrInput, symbolpos);
 
             ArrayList<Integer> positionList = new ArrayList<Integer>();
 
@@ -513,7 +523,19 @@ public class JackTokenizer {
 
             Collections.sort(positionList);
             if(positionList.size()>0){
-                return instrInput.substring(0, positionList.get(0));
+                String indentifierFound= instrInput.substring(0, positionList.get(0));
+                int [] keywordpos={-1};
+                String keyWordFound=findKeyWord(instrInput,keywordpos);
+                if(keyWordFound !=null && keyWordFound.equals(indentifierFound)){
+                    // if indentifierFound is a keyword
+                    return null;
+                }
+
+                if(indentifierFound.equals("")){
+                    return null; // identifier is not found
+                }
+
+                return indentifierFound;
             }
 
             return instrInput;
